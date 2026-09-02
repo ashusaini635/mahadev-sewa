@@ -10,26 +10,32 @@ export default auth((req) => {
   if (pathname === "/login") {
     if (session) {
       const role = session.user?.role;
-      return NextResponse.redirect(
-        new URL(role === "admin" ? "/admin" : "/dashboard", req.url)
-      );
+      const target = req.nextUrl.clone();
+      target.pathname = role === "admin" ? "/admin" : "/dashboard";
+      return NextResponse.redirect(target);
     }
     return NextResponse.next();
   }
 
   // Protected routes — must be logged in
   if (!session) {
-    return NextResponse.redirect(new URL("/login", req.url));
+    const loginUrl = req.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    return NextResponse.redirect(loginUrl);
   }
 
   // Admin-only routes
   if (pathname.startsWith("/admin") && session.user?.role !== "admin") {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    const dashboardUrl = req.nextUrl.clone();
+    dashboardUrl.pathname = "/dashboard";
+    return NextResponse.redirect(dashboardUrl);
   }
 
   // Member dashboard — redirect admins to admin panel
   if (pathname === "/dashboard" && session.user?.role === "admin") {
-    return NextResponse.redirect(new URL("/admin", req.url));
+    const adminUrl = req.nextUrl.clone();
+    adminUrl.pathname = "/admin";
+    return NextResponse.redirect(adminUrl);
   }
 
   return NextResponse.next();
