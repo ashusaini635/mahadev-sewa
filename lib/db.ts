@@ -189,19 +189,20 @@ export async function getPaymentsByMember(
 ): Promise<Payment[]> {
   const conditions: Parameters<typeof query>[1][] = [where("memberId", "==", memberId)];
   if (cycleId) conditions.push(where("cycleId", "==", cycleId));
-  const q = query(collection(db, "payments"), ...conditions, orderBy("month", "desc"));
+  const q = query(collection(db, "payments"), ...conditions);
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Payment));
+  const list = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Payment));
+  return list.sort((a, b) => b.month.localeCompare(a.month));
 }
 
 export async function getPaymentsByCycle(cycleId: string): Promise<Payment[]> {
   const q = query(
     collection(db, "payments"),
-    where("cycleId", "==", cycleId),
-    orderBy("month", "desc")
+    where("cycleId", "==", cycleId)
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Payment));
+  const list = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Payment));
+  return list.sort((a, b) => b.month.localeCompare(a.month));
 }
 
 export async function getPaymentForMonth(
