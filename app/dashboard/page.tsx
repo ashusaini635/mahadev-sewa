@@ -14,6 +14,8 @@ import {
   type Cycle,
 } from "@/lib/db";
 
+import { OmLoader } from "@/components/OmLoader";
+
 export default function MemberDashboard() {
   const { data: session } = useSession();
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -24,15 +26,23 @@ export default function MemberDashboard() {
   useEffect(() => {
     async function load() {
       if (!session?.user?.id) return;
-      const activeCycle = await getActiveCycle();
-      setCycle(activeCycle);
-      if (activeCycle) {
-        const months = getCycleMonths(activeCycle.startMonth, activeCycle.endDate);
-        setAllMonths(months);
-        const memberPayments = await getPaymentsByMember(session.user.id, activeCycle.id);
-        setPayments(memberPayments);
+      try {
+        const [activeCycle, memberPayments] = await Promise.all([
+          getActiveCycle(),
+          getPaymentsByMember(session.user.id),
+        ]);
+        setCycle(activeCycle);
+        if (activeCycle) {
+          setAllMonths(getCycleMonths(activeCycle.startMonth, activeCycle.endDate));
+          setPayments(memberPayments.filter((p) => !p.cycleId || p.cycleId === activeCycle.id));
+        } else {
+          setPayments(memberPayments);
+        }
+      } catch (err) {
+        console.error("Failed to load dashboard data:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     load();
   }, [session]);
@@ -49,11 +59,7 @@ export default function MemberDashboard() {
   const showAlert = isPaymentAlertActive() && !thisMonthPaid && allMonths.includes(thisMonth);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-orange-50">
-        <div className="text-orange-600 text-lg animate-pulse">Loading...</div>
-      </div>
-    );
+    return <OmLoader message="Loading your committee dashboard..." />;
   }
 
   return (

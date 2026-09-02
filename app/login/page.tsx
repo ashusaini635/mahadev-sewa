@@ -4,6 +4,8 @@ import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import { OmLoader } from "@/components/OmLoader";
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -30,11 +32,12 @@ function LoginForm() {
       password,
       redirect: false,
     });
-    setLoading(false);
     if (result?.error) {
+      setLoading(false);
       setError("Invalid username or password. Please try again.");
     } else {
-      router.push("/");
+      // Keep loading screen while navigating to dashboard
+      window.location.href = "/";
     }
   }
 
@@ -60,6 +63,10 @@ function LoginForm() {
       setForgotErr("Something went wrong. Please check your connection.");
     }
     setForgotLoading(false);
+  }
+
+  if (loading) {
+    return <OmLoader message="Signing in to Mahadev Seva..." />;
   }
 
   return (

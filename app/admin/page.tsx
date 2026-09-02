@@ -16,6 +16,8 @@ import {
   type Cycle,
 } from "@/lib/db";
 
+import { OmLoader } from "@/components/OmLoader";
+
 export default function AdminDashboard() {
   const { data: session } = useSession();
   const [members, setMembers] = useState<Member[]>([]);
@@ -25,18 +27,24 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   async function load() {
-    const activeCycle = await getActiveCycle();
-    setCycle(activeCycle);
-    const [allMembers, allPayments] = await Promise.all([
-      getAllMembers(),
-      activeCycle ? getPaymentsByCycle(activeCycle.id) : Promise.resolve([]),
-    ]);
-    setMembers(allMembers.filter((m) => m.role === "member"));
-    setPayments(allPayments);
-    if (activeCycle) {
-      setMonths(getCycleMonths(activeCycle.startMonth, activeCycle.endDate));
+    try {
+      const [activeCycle, allMembers] = await Promise.all([
+        getActiveCycle(),
+        getAllMembers(),
+      ]);
+      setCycle(activeCycle);
+      setMembers(allMembers.filter((m) => m.role === "member"));
+
+      if (activeCycle) {
+        setMonths(getCycleMonths(activeCycle.startMonth, activeCycle.endDate));
+        const allPayments = await getPaymentsByCycle(activeCycle.id);
+        setPayments(allPayments);
+      }
+    } catch (err) {
+      console.error("Error loading admin data:", err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   useEffect(() => { load(); }, []);
@@ -53,11 +61,7 @@ export default function AdminDashboard() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-orange-50">
-        <div className="text-orange-600 text-lg animate-pulse">Loading dashboard...</div>
-      </div>
-    );
+    return <OmLoader message="Loading Admin Dashboard..." />;
   }
 
   return (

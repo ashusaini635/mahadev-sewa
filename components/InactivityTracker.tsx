@@ -47,3 +47,4 @@ export function InactivityTracker() {
 
   return null;
 }
+
