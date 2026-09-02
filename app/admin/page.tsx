@@ -78,6 +78,7 @@ export default function AdminDashboard() {
               <Link href="/admin/members" className="hover:bg-orange-600 px-3 py-1.5 rounded-lg transition-colors">Members</Link>
               <Link href="/admin/payments" className="hover:bg-orange-600 px-3 py-1.5 rounded-lg transition-colors">Record Payment</Link>
               <Link href="/admin/cycle" className="hover:bg-orange-600 px-3 py-1.5 rounded-lg transition-colors">Cycle</Link>
+              <Link href="/change-password" className="hover:bg-orange-600 px-3 py-1.5 rounded-lg transition-colors">Password</Link>
             </nav>
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
@@ -93,6 +94,7 @@ export default function AdminDashboard() {
           <Link href="/admin/members" className="hover:bg-orange-600 px-3 py-1 rounded-lg whitespace-nowrap transition-colors">Members</Link>
           <Link href="/admin/payments" className="hover:bg-orange-600 px-3 py-1 rounded-lg whitespace-nowrap transition-colors">Record Payment</Link>
           <Link href="/admin/cycle" className="hover:bg-orange-600 px-3 py-1 rounded-lg whitespace-nowrap transition-colors">Cycle</Link>
+          <Link href="/change-password" className="hover:bg-orange-600 px-3 py-1 rounded-lg whitespace-nowrap transition-colors">Password</Link>
         </div>
       </header>
 

@@ -111,6 +111,7 @@ export default function AdminPaymentsPage() {
           <div className="flex items-center gap-2 text-sm">
             <Link href="/admin" className="hover:bg-orange-600 px-3 py-1.5 rounded-lg transition-colors">← Dashboard</Link>
             <Link href="/admin/members" className="hover:bg-orange-600 px-3 py-1.5 rounded-lg transition-colors">Members</Link>
+            <Link href="/change-password" className="hover:bg-orange-600 px-3 py-1.5 rounded-lg transition-colors">Password</Link>
             <button onClick={() => signOut({ callbackUrl: "/login" })} className="bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg transition-colors">Sign Out</button>
           </div>
         </div>
