@@ -67,24 +67,25 @@ export default function AdminMembersPage() {
       return;
     }
     setSaving(true);
-    await updateMemberPassword(id, newPassword);
+    await updateMemberPassword(id, newPassword, true);
     setNewPassword("");
     setEditPasswordId(null);
-    setMessage("✅ Password updated!");
+    setMessage("✅ Password updated! Member will be asked to change it upon logging in.");
     setSaving(false);
-    setTimeout(() => setMessage(""), 3000);
+    await load();
+    setTimeout(() => setMessage(""), 5000);
   }
 
   async function handleResolveReset(requestId: string, memberId: string, memberName: string) {
-    const newPwd = prompt(`Set new password for ${memberName} (min 4 chars):`);
+    const newPwd = prompt(`Set temporary password for ${memberName} (min 4 chars):`);
     if (!newPwd || newPwd.length < 4) {
       if (newPwd !== null) alert("Password must be at least 4 characters.");
       return;
     }
     setSaving(true);
-    await updateMemberPassword(memberId, newPwd);
+    await updateMemberPassword(memberId, newPwd, true);
     await resolvePasswordReset(requestId);
-    setMessage(`✅ Password reset for ${memberName}. Share their new password: "${newPwd}"`);
+    setMessage(`✅ Password reset for ${memberName}. Share temporary password: "${newPwd}". They will set their own password upon logging in.`);
     setSaving(false);
     await load();
     setTimeout(() => setMessage(""), 10000);

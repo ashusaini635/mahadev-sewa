@@ -154,9 +154,17 @@ export async function updateMember(
   await updateDoc(doc(db, "members", id), data);
 }
 
-export async function updateMemberPassword(id: string, newPassword: string): Promise<void> {
+export async function updateMemberPassword(
+  id: string,
+  newPassword: string,
+  mustChangePassword?: boolean
+): Promise<void> {
   const passwordHash = await bcrypt.hash(newPassword, 10);
-  await updateDoc(doc(db, "members", id), { passwordHash });
+  const data: { passwordHash: string; mustChangePassword?: boolean } = { passwordHash };
+  if (mustChangePassword !== undefined) {
+    data.mustChangePassword = mustChangePassword;
+  }
+  await updateDoc(doc(db, "members", id), data);
 }
 
 export async function deleteMember(id: string): Promise<void> {

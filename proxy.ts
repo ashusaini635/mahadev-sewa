@@ -24,6 +24,16 @@ export default auth((req) => {
     return NextResponse.redirect(loginUrl);
   }
 
+  // Force password change if required (first-time login or admin reset)
+  if (session.user?.mustChangePassword) {
+    if (pathname !== "/change-password") {
+      const changePwdUrl = req.nextUrl.clone();
+      changePwdUrl.pathname = "/change-password";
+      return NextResponse.redirect(changePwdUrl);
+    }
+    return NextResponse.next();
+  }
+
   // Admin-only routes
   if (pathname.startsWith("/admin") && session.user?.role !== "admin") {
     const dashboardUrl = req.nextUrl.clone();
@@ -42,6 +52,6 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/", "/login", "/admin/:path*", "/dashboard/:path*"],
+  matcher: ["/", "/login", "/admin/:path*", "/dashboard/:path*", "/change-password"],
 };
 

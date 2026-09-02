@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
+import Link from "next/link";
 
 export default function ChangePasswordPage() {
-  const { data: session, update } = useSession();
-  const router = useRouter();
+  const { data: session } = useSession();
   const [newPassword, setNewPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
@@ -34,9 +33,8 @@ export default function ChangePasswordPage() {
       setError("Something went wrong. Please try again.");
       return;
     }
-    // Update session so mustChangePassword becomes false
-    await update({ mustChangePassword: false });
-    router.push("/");
+    // Sign out old session and redirect user to login page
+    await signOut({ callbackUrl: "/login?updated=true" });
   }
 
   return (
@@ -94,6 +92,15 @@ export default function ChangePasswordPage() {
           >
             {loading ? "Saving..." : "Save Password & Continue"}
           </button>
+
+          {!session?.user?.mustChangePassword && (
+            <Link
+              href={session?.user?.role === "admin" ? "/admin" : "/dashboard"}
+              className="block text-center text-sm text-gray-500 hover:text-gray-800 transition-colors mt-2"
+            >
+              ← Cancel and Return
+            </Link>
+          )}
         </form>
 
         <p className="text-center text-xs text-gray-400 mt-6">🚩 Har Har Mahadev 🚩</p>

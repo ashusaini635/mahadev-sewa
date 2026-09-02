@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isUpdated = searchParams.get("updated") === "true";
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -68,6 +70,13 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold text-orange-800">Mahadev Seva</h1>
           <p className="text-gray-500 text-sm mt-1">Committee Fund Tracker</p>
         </div>
+
+        {isUpdated && (
+          <div className="mb-6 bg-green-50 border border-green-300 rounded-xl px-4 py-3 text-green-800 text-sm flex items-center gap-2">
+            <span>✅</span>
+            <span>Password updated successfully! Please sign in with your new password.</span>
+          </div>
+        )}
 
         {!showForgot ? (
           /* Sign In Form */
@@ -192,6 +201,14 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-orange-50" />}>
+      <LoginForm />
+    </Suspense>
   );
 }
 
