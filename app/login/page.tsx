@@ -8,6 +8,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isUpdated = searchParams.get("updated") === "true";
+  const isTimeout = searchParams.get("reason") === "timeout";
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -75,6 +76,13 @@ function LoginForm() {
           <div className="mb-6 bg-green-50 border border-green-300 rounded-xl px-4 py-3 text-green-800 text-sm flex items-center gap-2">
             <span>✅</span>
             <span>Password updated successfully! Please sign in with your new password.</span>
+          </div>
+        )}
+
+        {isTimeout && (
+          <div className="mb-6 bg-amber-50 border border-amber-300 rounded-xl px-4 py-3 text-amber-800 text-sm flex items-center gap-2">
+            <span>⏱️</span>
+            <span>You have been signed out due to 30 minutes of inactivity. Please sign in again.</span>
           </div>
         )}
 
