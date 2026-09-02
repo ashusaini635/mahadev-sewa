@@ -22,22 +22,24 @@ export function OmLoader({
       } flex flex-col items-center justify-center p-4`}
     >
       <style jsx>{`
-        @keyframes omReveal {
+        @keyframes omFill {
           0% {
-            opacity: 0.15;
-            transform: scale(0.9);
-            filter: drop-shadow(0 0 5px rgba(234, 88, 12, 0.2));
+            clip-path: inset(100% 0 0 0);
+            filter: drop-shadow(0 0 2px rgba(234, 88, 12, 0.3));
           }
-          50% {
-            opacity: 1;
-            transform: scale(1.06);
-            filter: drop-shadow(0 0 25px rgba(249, 115, 22, 0.85))
-              drop-shadow(0 0 45px rgba(234, 88, 12, 0.4));
+          60% {
+            clip-path: inset(0% 0 0 0);
+            filter: drop-shadow(0 0 16px rgba(234, 88, 12, 0.8))
+              drop-shadow(0 0 30px rgba(249, 115, 22, 0.6));
+          }
+          88% {
+            clip-path: inset(0% 0 0 0);
+            filter: drop-shadow(0 0 25px rgba(249, 115, 22, 0.95))
+              drop-shadow(0 0 40px rgba(234, 88, 12, 0.7));
           }
           100% {
-            opacity: 0.15;
-            transform: scale(0.9);
-            filter: drop-shadow(0 0 5px rgba(234, 88, 12, 0.2));
+            clip-path: inset(100% 0 0 0);
+            filter: drop-shadow(0 0 2px rgba(234, 88, 12, 0.3));
           }
         }
 
@@ -54,16 +56,16 @@ export function OmLoader({
           0%,
           100% {
             opacity: 0.3;
-            transform: scale(0.85);
+            transform: scale(0.9);
           }
           50% {
-            opacity: 0.7;
-            transform: scale(1.15);
+            opacity: 0.65;
+            transform: scale(1.1);
           }
         }
 
-        .om-animated {
-          animation: omReveal 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        .om-fill-animated {
+          animation: omFill 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         }
 
         .ring-animated {
@@ -71,7 +73,7 @@ export function OmLoader({
         }
 
         .glow-aura {
-          animation: pulseGlow 2.2s ease-in-out infinite;
+          animation: pulseGlow 2.4s ease-in-out infinite;
         }
       `}</style>
 
@@ -85,16 +87,14 @@ export function OmLoader({
         {/* Middle subtle ring */}
         <div className="absolute h-28 w-28 rounded-full border border-orange-300/50" />
 
-        {/* Base Transparent Om (Ghost silhouette) */}
-        <div className="pointer-events-none select-none text-7xl font-bold text-orange-400/20 sm:text-8xl">
+        {/* Base Om — clearly visible at all times */}
+        <div className="pointer-events-none select-none text-7xl opacity-35 sm:text-8xl">
           🕉️
         </div>
 
-        {/* Animated Om that transitions from transparent to full non-transparent */}
-        <div className="om-animated absolute pointer-events-none select-none text-7xl sm:text-8xl">
-          <span className="bg-gradient-to-t from-orange-700 via-orange-600 to-amber-500 bg-clip-text text-transparent">
-            🕉️
-          </span>
+        {/* Filled Om — fills up from bottom to top until complete and radiant */}
+        <div className="om-fill-animated absolute inset-0 pointer-events-none select-none flex items-center justify-center text-7xl sm:text-8xl">
+          🕉️
         </div>
       </div>
 
@@ -110,4 +110,3 @@ export function OmLoader({
     </div>
   );
 }
-
