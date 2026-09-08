@@ -6,6 +6,7 @@ import { signOut } from "next-auth/react";
 import {
   getAllMembers,
   createMember,
+  updateMember,
   updateMemberPassword,
   deleteMember,
   getPendingPasswordResets,
@@ -21,6 +22,8 @@ export default function AdminMembersPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editPasswordId, setEditPasswordId] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState("");
+  const [editInfoId, setEditInfoId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ name: "", phone: "" });
   const [form, setForm] = useState({ name: "", username: "", password: "", phone: "" });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -74,6 +77,31 @@ export default function AdminMembersPage() {
     setSaving(false);
     await load();
     setTimeout(() => setMessage(""), 5000);
+  }
+
+  function startEditInfo(member: Member) {
+    setEditInfoId(member.id);
+    setEditForm({ name: member.name, phone: member.phone ?? "" });
+    setEditPasswordId(null);
+    setNewPassword("");
+  }
+
+  async function handleEditInfo(id: string) {
+    if (!editForm.name.trim()) {
+      setMessage("❌ Name cannot be empty.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await updateMember(id, { name: editForm.name.trim(), phone: editForm.phone.trim() });
+      setEditInfoId(null);
+      setMessage("✅ Member info updated successfully!");
+      await load();
+    } catch {
+      setMessage("❌ Error updating member info.");
+    }
+    setSaving(false);
+    setTimeout(() => setMessage(""), 4000);
   }
 
   async function handleResolveReset(requestId: string, memberId: string, memberName: string) {
@@ -225,73 +253,143 @@ export default function AdminMembersPage() {
               <p>No members yet. Add your first member above.</p>
             </div>
           ) : (
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="text-left px-5 py-3 font-semibold text-gray-600">Name</th>
-                  <th className="text-left px-5 py-3 font-semibold text-gray-600">Username</th>
-                  <th className="text-left px-5 py-3 font-semibold text-gray-600">Phone</th>
-                  <th className="text-left px-5 py-3 font-semibold text-gray-600">Password</th>
-                  <th className="px-5 py-3"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {members.filter(m => m.role === "member").map((member) => (
-                  <tr key={member.id} className="hover:bg-orange-50 transition-colors">
-                    <td className="px-5 py-3 font-medium text-gray-800">
-                      {member.name}
-                      {member.mustChangePassword && (
-                        <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">First login pending</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3 text-gray-600 font-mono text-xs">{member.username}</td>
-                    <td className="px-5 py-3 text-gray-500">{member.phone || "—"}</td>
-                    <td className="px-5 py-3">
-                      {editPasswordId === member.id ? (
-                        <div className="flex items-center gap-2">
+            <div className="divide-y divide-gray-100">
+              {members.filter(m => m.role === "member").map((member) => (
+                <div key={member.id}>
+                  {/* Member row */}
+                  <div className="flex items-center gap-3 px-5 py-4 hover:bg-orange-50/50 transition-colors">
+                    {/* Avatar */}
+                    <div className="w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center text-orange-700 font-bold text-sm shrink-0">
+                      {member.name.charAt(0).toUpperCase()}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-gray-800 text-sm">{member.name}</span>
+                        {member.mustChangePassword && (
+                          <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">First login pending</span>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-400 mt-0.5 flex items-center gap-3 flex-wrap">
+                        <span className="font-mono">@{member.username}</span>
+                        {member.phone && <span>📱 {member.phone}</span>}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => editInfoId === member.id ? setEditInfoId(null) : startEditInfo(member)}
+                        className={`text-xs px-2.5 py-1.5 rounded-lg transition-colors font-medium ${
+                          editInfoId === member.id
+                            ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                            : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+                        }`}
+                      >
+                        {editInfoId === member.id ? "✕ Cancel" : "✏️ Edit"}
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (editPasswordId === member.id) {
+                            setEditPasswordId(null);
+                            setNewPassword("");
+                          } else {
+                            setEditPasswordId(member.id);
+                            setEditInfoId(null);
+                          }
+                        }}
+                        className={`text-xs px-2.5 py-1.5 rounded-lg transition-colors font-medium ${
+                          editPasswordId === member.id
+                            ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                            : "bg-orange-50 text-orange-700 hover:bg-orange-100"
+                        }`}
+                      >
+                        {editPasswordId === member.id ? "✕ Cancel" : "🔑 Password"}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(member.id, member.name)}
+                        className="text-xs px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors font-medium"
+                      >
+                        🗑️ Remove
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Inline Edit Info Panel */}
+                  {editInfoId === member.id && (
+                    <div className="px-5 pb-4 pt-3 bg-blue-50 border-t border-blue-100">
+                      <p className="text-xs font-semibold text-blue-700 mb-3">Edit Member Info</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Full Name</label>
                           <input
-                            type="text"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            className="border rounded px-2 py-1 text-xs text-gray-900 bg-white w-28 focus:outline-none focus:ring-1 focus:ring-orange-400"
-                            placeholder="New password"
-                            autoFocus
+                            value={editForm.name}
+                            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                            className="w-full border rounded-lg px-3 py-1.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
                           />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Phone</label>
+                          <input
+                            type="tel"
+                            value={editForm.phone}
+                            onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                            className="w-full border rounded-lg px-3 py-1.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                          />
+                        </div>
+                        <div className="flex items-end gap-2">
                           <button
-                            onClick={() => handlePasswordChange(member.id)}
+                            onClick={() => handleEditInfo(member.id)}
                             disabled={saving}
-                            className="text-xs bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded"
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-xs px-3 py-2 rounded-lg transition-colors font-semibold"
                           >
-                            Save
+                            {saving ? "Saving..." : "Save Changes"}
                           </button>
                           <button
-                            onClick={() => { setEditPasswordId(null); setNewPassword(""); }}
-                            className="text-xs text-gray-500 hover:text-gray-700"
+                            onClick={() => setEditInfoId(null)}
+                            className="text-xs text-gray-500 hover:text-gray-700 px-2"
                           >
                             Cancel
                           </button>
                         </div>
-                      ) : (
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Inline Password Change Panel */}
+                  {editPasswordId === member.id && (
+                    <div className="px-5 pb-4 pt-3 bg-orange-50 border-t border-orange-100">
+                      <p className="text-xs font-semibold text-orange-700 mb-2">Set New Password for {member.name}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <input
+                          type="text"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          className="border rounded-lg px-3 py-1.5 text-sm text-gray-900 bg-white w-52 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                          placeholder="New password (min 4 chars)"
+                          autoFocus
+                        />
                         <button
-                          onClick={() => setEditPasswordId(member.id)}
-                          className="text-xs text-orange-600 hover:underline"
+                          onClick={() => handlePasswordChange(member.id)}
+                          disabled={saving}
+                          className="bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-xs px-3 py-2 rounded-lg font-semibold"
                         >
-                          Change Password
+                          {saving ? "Saving..." : "Save"}
                         </button>
-                      )}
-                    </td>
-                    <td className="px-5 py-3 text-right">
-                      <button
-                        onClick={() => handleDelete(member.id, member.name)}
-                        className="text-xs text-red-500 hover:text-red-700 hover:underline"
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        <button
+                          onClick={() => { setEditPasswordId(null); setNewPassword(""); }}
+                          className="text-xs text-gray-500 hover:text-gray-700"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      <p className="text-xs text-orange-600 mt-2">Member will be required to set their own password on next login.</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </main>
